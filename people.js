@@ -1,49 +1,49 @@
 const axios = require("axios");
 
-async function getPeople() {
+async function fetchPeople() {
   const { data } = await axios.get(
     "https://gist.githubusercontent.com/graffixnyc/a1196cbf008e85a8e808dc60d4db7261/raw/9fd0d1a4d7846b19e52ab3551339c5b0b37cac71/people.json"
   );
   return data;
 }
 
-const getPersonById = async id => {
-  const peopleData = await getPeople();
+const fetchPersonById = async id => {
+  const people = await fetchPeople();
 
-  if (!id) throw "Id paramter should be supplied.";
-  if (typeof id !== "string") throw "Id should be a string";
-  if (id.trim() === "") throw "Id is empty spaces";
+  if (!id) throw "paramter should be supplied.";
+  if (typeof id !== "string") throw "parameter should be a string";
+  if (id.trim() === "") throw "paramter is empty spaces";
 
-  const foundPerson = peopleData.find(person => person.id === id);
+  const person = people.find(person => person.id === id);
 
-  if (foundPerson.length < 1) throw "Person not found";
-  return foundPerson;
+  if (person.length < 1) throw "not found";
+  return person;
 };
 
-const sameEmail = async domain => {
-  const peopleData = await getPeople();
+const similarEmails = async emailDomain => {
+  const people = await fetchPeople();
 
-  if (!domain) throw "Email Domain parameter not supplied";
-  if (domain.trim() === "") throw "Empty email domain supplied";
-  if (!domain.includes(".")) throw "Email Domain does not contain a .";
-  if (domain.substr(domain.lastIndexOf(".") + 1).length < 2)
+  if (!emailDomain) throw "Email Domain parameter not supplied";
+  if (emailDomain.trim() === "") throw "Empty email domain supplied";
+  if (!emailDomain.includes(".")) throw "Email Domain does not contain a .";
+  if (emailDomain.substr(emailDomain.lastIndexOf(".") + 1).length < 2)
     throw "Email domain has less than 2 characters afet the dot";
 
-  const providedDomain = domain.substr(domain.lastIndexOf("@") + 1);
-  const sameEmails = peopleData.filter(obj => {
-    const domainToBeChecked = obj.email.substr(obj.email.lastIndexOf("@") + 1);
+  const providedDomain = domain.substr(emailDomain.lastIndexOf("@") + 1);
+  const sameDomainEmails = people.filter(person => {
+    const domainToBeChecked = person.email.substr(person.email.lastIndexOf("@") + 1);
     return providedDomain === domainToBeChecked;
   });
 
-  if (sameEmails.length < 2)
+  if (sameDomainEmails.length < 2)
     throw "Not moree than 2 people have the same email domain";
-  return sameEmails;
+  return sameDomainEmails;
 };
 
-const manipulateIp = async () => {
-  const peopleData = await getPeople();
+const ipManipulation = async () => {
+  const people = await fetchPeople();
 
-  const newData = peopleData.map(obj => {
+  const newPeopleData = people.map(obj => {
     const newObj = {};
     newObj["first_name"] = obj["first_name"];
     newObj["last_name"] = obj["last_name"];
@@ -56,41 +56,41 @@ const manipulateIp = async () => {
     return newObj;
   });
 
-  const highestPerson = {
-    firstName: newData[0]["first_name"],
-    lastName: newData[0]["last_name"],
+  const highestIpPerson = {
+    firstName: newPeopleData[0]["first_name"],
+    lastName: newPeopleData[0]["last_name"],
   };
-  const lowestPerson = {
-    firstName: newData[0]["first_name"],
-    lastName: newData[0]["last_name"],
+  const lowestIpPerson = {
+    firstName: newPeopleData[0]["first_name"],
+    lastName: newPeopleData[0]["last_name"],
   };
   let sum = 0;
-  let highest = newData[0]["ip_address"];
-  let lowest = newData[0]["ip_address"];
+  let highestIp = newPeopleData[0]["ip_address"];
+  let lowestIp = newPeopleData[0]["ip_address"];
 
-  for (let obj of newData) {
-    if (obj["ip_address"] > highest) {
-      highest = obj["ip_address"];
-      highestPerson.firstName = obj["first_name"];
-      highestPerson.lastName = obj["last_name"];
+  for (let obj of newPeopleData) {
+    if (obj["ip_address"] > highestIp) {
+      highestIp = obj["ip_address"];
+      highestIpPerson.firstName = obj["first_name"];
+      highestIpPerson.lastName = obj["last_name"];
     }
-    if (obj["ip_address"] < lowest) {
+    if (obj["ip_address"] < lowestIp) {
       lowest = obj["ip_address"];
-      lowestPerson.firstName = obj["first_name"];
-      lowestPerson.lastName = obj["last_name"];
+      lowestIpPerson.firstName = obj["first_name"];
+      lowestIpPerson.lastName = obj["last_name"];
     }
     sum = sum + obj["ip_address"];
   }
 
   return {
-    highest: highestPerson,
-    lowest: lowestPerson,
-    average: sum / newData.length,
+    highest: highestIpPerson,
+    lowest: lowestIpPerson,
+    average: sum / newPeopleData.length,
   };
 };
 
-const sameBirthday = async (month, day) => {
-  const peopleData = await getPeople();
+const similarDateOfBirth = async (month, day) => {
+  const people = await fetchPeople();
 
   if (!month && !day) throw "Month or Day parameter is not present";
   if (typeof Number(month) !== "number" || typeof Number(day) !== "number")
@@ -118,19 +118,11 @@ const sameBirthday = async (month, day) => {
       throw "In the months of 4, 6, 9 and 11 days should be less than 31";
   }
   const result = [];
-  for (let obj of peopleData) {
-    const objDate = obj["date_of_birth"].split("/");
+  for (let person of people) {
+    const objDate = person["date_of_birth"].split("/");
     if (month == objDate[0] && day == objDate[1])
-      result.push(`${obj["first_name"]} ${obj["last_name"]}`);
+      result.push(`${person["first_name"]} ${person["last_name"]}`);
   }
   if (result.length === 0) throw "There are no peoplpe with given birthdate";
   return result;
-};
-
-module.exports = {
-  sameBirthday,
-  getPersonById,
-  manipulateIp,
-  sameEmail,
-  getPeople,
 };
